@@ -35,12 +35,13 @@ app.use('/api', router);
 //Router
 router.post('/encoding', fileParser, function(req, res){
     console.log(req.files)
+    res.status(200).send(req.files);
+
 });
 
 
 const port = 3000;
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
-
 
 function fileParser(req, res, next){
 
@@ -62,12 +63,13 @@ function fileParser(req, res, next){
 
         req.on('end', (err) => {
 
+            if(err)
+                throw new Error("ERROR: " + err);
+
             //Caputre form Boundary
             let boundary = data.match(/^.+$/m);
-
             //Split up all files 
             let binaryFiles = data.split(boundary);
-
             for(var i = 0; i < binaryFiles.length; i++){
     
                 if(isFile(binaryFiles[i])){
@@ -100,7 +102,10 @@ function fileParser(req, res, next){
                         location: `tmp/${fileName}.${fileExtension}`
                     });
 
-                    fs.writeFile(`tmp/${fileName}.${fileExtension}`, file, 'base64');
+                    fs.writeFile(`tmp/${fileName}.${fileExtension}`, file, 'base64', (err) => {
+                        if(err)
+                            throw new Error(err);
+                    });
                 }
             }
 
@@ -108,5 +113,7 @@ function fileParser(req, res, next){
         });
 
     }
+
+    next();
 
 }
